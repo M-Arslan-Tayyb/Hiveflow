@@ -8,6 +8,7 @@ import type { JwtPayload } from "@/types/jwt.js";
 const authenticate = asyncHandler(async (req, res, next) => {
   // 1. Get token from the Authorization header
   const authHeader = req.headers.authorization;
+  console.log("Auth Header:", authHeader); // Debug log
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ message: "Access token required" });
