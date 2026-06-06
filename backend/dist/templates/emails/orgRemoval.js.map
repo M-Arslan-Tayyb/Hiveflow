@@ -1,0 +1,1 @@
+{"version":3,"file":"orgRemoval.js","sourceRoot":"","sources":["../../../src/templates/emails/orgRemoval.ts"],"names":[],"mappings":"AAUA,MAAM,kBAAkB,GAAG,CAAC,EAC1B,QAAQ,EACR,OAAO,GACU,EAAiB,EAAE;IACpC,OAAO;QACL,OAAO,EAAE,8BAA8B,OAAO,EAAE;QAChD,IAAI,EAAE;;;wBAGc,QAAQ;iEACiC,OAAO;;;;;;;;KAQnE;KACF,CAAC;AACJ,CAAC,CAAC;AAEF,eAAe,kBAAkB,CAAC"}

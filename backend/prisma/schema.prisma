@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ProjectRole {
+  MANAGER
+  DEVELOPER
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  fullName   String
+  avatar     String?
+  isVerified Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  orgMembers     OrgMember[]
+  projectMembers ProjectMember[]
+  assignedTasks  Task[]          @relation("AssignedTo")
+  createdTasks   Task[]          @relation("CreatedBy")
+  comments       Comment[]
+  auditLogs      AuditLog[]
+
+  notifications     Notification[] @relation("NotificationReceiver")
+  sentNotifications Notification[] @relation("NotificationSender")
+
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+
+  isOwner Boolean @default(false)
+
+  emailVerifyToken  String?
+  emailVerifyExpiry DateTime?
+  inviteToken       String?
+  sentInvites       OrgInvite[] @relation("InvitedBy")
+
+  magicLinkToken  String?
+  magicLinkExpiry DateTime?
+  sentProjectInvites ProjectInvite[] @relation("ProjectInvitedBy")
+}
+
+model Organization {
+  id        String      @id @default(uuid())
+  name      String
+  slug      String      @unique
+  logo      String?
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  members   OrgMember[]
+  projects  Project[]
+  invites   OrgInvite[]
+}
+
+model OrgMember {
+  id       String   @id @default(uuid())
+  role     OrgRole  @default(ADMIN)
+  joinedAt DateTime @default(now())
+
+  userId String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgId  String
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+}
+
+model OrgInvite {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiry    DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId String
+
+  invitedBy   User   @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitedById String
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orgId   String
+  org     Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members ProjectMember[]
+  tasks   Task[]
+  boards  Board[]
+  invites ProjectInvite[]
+}
+
+model ProjectMember {
+  id       String      @id @default(uuid())
+  role     ProjectRole @default(DEVELOPER)
+  joinedAt DateTime    @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model Board {
+  id        String   @id @default(uuid())
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@index([projectId, position])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  position    Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  assignee   User?   @relation("AssignedTo", fields: [assigneeId], references: [id])
+  assigneeId String?
+
+  creator   User   @relation("CreatedBy", fields: [creatorId], references: [id])
+  creatorId String
+
+  comments    Comment[]
+  attachments Attachment[]
+
+  @@index([boardId, position])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User   @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  sender   User?   @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  senderId String?
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model ProjectInvite {
+  id        String      @id @default(uuid())
+  email     String
+  token     String      @unique
+  role      ProjectRole @default(DEVELOPER)
+  expiry    DateTime
+  isUsed    Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  invitedBy   User   @relation("ProjectInvitedBy", fields: [invitedById], references: [id])
+  invitedById String
+}

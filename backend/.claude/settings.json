@@ -1,0 +1,13 @@
+{
+  "postman": {
+    "workspaceId": "b018b1ab-865c-4435-8386-e88225f48944",
+    "collectionId": "0c113700-cc29-4645-95cc-870f62fd9503",
+    "collectionName": "Project Management",
+    "folders": {
+      "auth": "35c00180-4c5a-41d2-b066-2901952071b6",
+      "organizations": "73248cb3-deb3-488a-9e63-d4f33ba94bd5",
+      "projects": "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+      "project-members": "8b9c0d1e-2f3a-4b5c-6d7e-8f0a1b2c3d4e"
+    }
+  }
+}
