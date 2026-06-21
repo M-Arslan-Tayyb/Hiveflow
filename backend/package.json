@@ -17,7 +17,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1066.0",
+    "@aws-sdk/lib-storage": "^3.1066.0",
+    "@aws-sdk/s3-request-presigner": "^3.1067.0",
     "@prisma/client": "^6.19.3",
+    "@types/multer": "^2.1.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -27,8 +31,11 @@
     "joi": "^18.1.2",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
+    "multer": "^2.1.1",
     "nodemailer": "^8.0.7",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -38,7 +45,7 @@
     "@types/node": "^24.10.1",
     "@types/nodemailer": "^7.0.4",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^4.0.0",
+    "tsc-alias": "^1.8.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

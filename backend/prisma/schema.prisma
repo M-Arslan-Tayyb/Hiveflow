@@ -41,6 +41,7 @@ model User {
   assignedTasks  Task[]          @relation("AssignedTo")
   createdTasks   Task[]          @relation("CreatedBy")
   comments       Comment[]
+  attachments    Attachment[]
   auditLogs      AuditLog[]
 
   notifications     Notification[] @relation("NotificationReceiver")
@@ -98,7 +99,7 @@ model OrgInvite {
   org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId String
 
-  invitedBy   User   @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitedBy   User   @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
   invitedById String
 }
 
@@ -164,8 +165,8 @@ model Task {
   assignee   User?   @relation("AssignedTo", fields: [assigneeId], references: [id])
   assigneeId String?
 
-  creator   User   @relation("CreatedBy", fields: [creatorId], references: [id])
-  creatorId String
+  creator   User?  @relation("CreatedBy", fields: [creatorId], references: [id], onDelete: SetNull)
+  creatorId String?
 
   comments    Comment[]
   attachments Attachment[]
@@ -182,20 +183,28 @@ model Comment {
   taskId String
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
+  authorId String?
+  author   User?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
 }
 
 model Attachment {
   id        String   @id @default(uuid())
   fileName  String
   fileUrl   String
+  fileKey   String
   fileSize  Int
   mimeType  String
   createdAt DateTime @default(now())
 
   taskId String
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  uploadedById String?
+  uploadedBy   User?   @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 }
 
 model Notification {
@@ -236,6 +245,6 @@ model ProjectInvite {
   projectId   String
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  invitedBy   User   @relation("ProjectInvitedBy", fields: [invitedById], references: [id])
+  invitedBy   User   @relation("ProjectInvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
   invitedById String
 }

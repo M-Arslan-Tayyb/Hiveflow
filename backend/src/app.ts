@@ -8,6 +8,7 @@ import orgRoutes from "@/modules/organizations/org.route.js";
 import projectRoutes from "@/modules/projects/projects.routes.js";
 import userRoutes from "@/modules/users/users.route.js";
 import { globalLimiter } from "@/middlewares/rateLimitar.js";
+import logger from "@/config/logger.js";
 
 const app: Application = express();
 
@@ -19,8 +20,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// HTTP logging
-app.use(morgan("dev"));
+// HTTP logging — Morgan writes to Winston at http level
+app.use(
+  morgan("combined", {
+    stream: { write: (message) => logger.http(message.trim()) },
+  })
+);
 
 // Rate limiting
 app.use(globalLimiter);

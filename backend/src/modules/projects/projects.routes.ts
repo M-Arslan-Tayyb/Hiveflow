@@ -11,12 +11,16 @@ import {
 import membersRouter from "@/modules/projects/members/members.routes.js";
 import boardsRouter from "@/modules/projects/boards/boards.routes.js";
 import tasksRouter from "@/modules/projects/tasks/tasks.routes.js";
+import commentsRouter from "@/modules/projects/tasks/comments/comments.routes.js";
+import attachmentsRouter from "@/modules/projects/tasks/attachments/attachments.routes.js";
 
 const router = Router();
 
 router.use("/:orgId/projects/:projectId/members", membersRouter);
 router.use("/:orgId/projects/:projectId/boards", boardsRouter);
 router.use("/:orgId/projects/:projectId/tasks", tasksRouter);
+router.use("/:orgId/projects/:projectId/tasks/:taskId/comments", commentsRouter);
+router.use("/:orgId/projects/:projectId/tasks/:taskId/attachments", attachmentsRouter);
 
 router.post(
   "/:orgId/projects",

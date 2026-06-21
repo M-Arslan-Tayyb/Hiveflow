@@ -16,6 +16,13 @@ interface SmtpConfig {
   pass: string | undefined;
 }
 
+interface AwsConfig {
+  accessKeyId: string | undefined;
+  secretAccessKey: string | undefined;
+  region: string | undefined;
+  bucketName: string | undefined;
+}
+
 interface AppConfig {
   env: string;
   port: number;
@@ -23,6 +30,7 @@ interface AppConfig {
   dbUrl: string;
   jwt: JwtConfig;
   smtp: SmtpConfig;
+  aws: AwsConfig;
   frontendUrl: string | undefined;
   ownerInviteSecret: string | undefined;
   appUrl: string | undefined;
@@ -44,6 +52,12 @@ const config: AppConfig = {
     port: process.env.SMTP_PORT,
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
+  },
+  aws: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+    bucketName: process.env.AWS_BUCKET_NAME,
   },
   frontendUrl: process.env.FRONTEND_URL,
   ownerInviteSecret: process.env.OWNER_INVITE_SECRET,
