@@ -5,6 +5,7 @@ import prisma from "@/config/db.js";
 import config from "@/config/env.js";
 import ApiError from "@/utils/ApiError.js";
 import { sendProjectInviteEmail } from "@/templates/emailService.js";
+import { deleteCache } from "@/utils/cache.js";
 
 interface AddMemberInput {
   projectId: string;
@@ -75,6 +76,9 @@ const addMember = async ({ projectId, orgId, userId, role }: AddMemberInput) => 
     }
   });
 
+  // Invalidate cache
+  await deleteCache(`project:${projectId}`);
+
   return true;
 };
 
@@ -116,6 +120,9 @@ const removeMember = async ({
     where: { userId_projectId: { userId: targetUserId, projectId } },
   });
 
+  // Invalidate cache
+  await deleteCache(`project:${projectId}`);
+
   return true;
 };
 
@@ -144,6 +151,9 @@ const updateMemberRole = async ({
     where: { userId_projectId: { userId: targetUserId, projectId } },
     data: { role },
   });
+
+  // Invalidate cache
+  await deleteCache(`project:${projectId}`);
 
   return updated;
 };
@@ -245,6 +255,9 @@ const inviteProjectMember = async ({
     magicLinkUrl,
     generatedPassword,
   });
+
+  // 7. Invalidate cache
+  await deleteCache(`project:${projectId}`);
 
   return true;
 };

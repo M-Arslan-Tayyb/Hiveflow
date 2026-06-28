@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/config/db.js";
 import ApiError from "@/utils/ApiError.js";
+import { getCache, setCache, deleteCache } from "@/utils/cache.js";
 
 interface CreateProjectInput {
   orgId: string;
@@ -60,10 +61,19 @@ const createProject = async ({
     return newProject;
   });
 
+  // Invalidate cache
+  await deleteCache(`projects:${orgId}`);
+
   return project;
 };
 
 const getProjects = async ({ orgId }: GetProjectsInput) => {
+  const cacheKey = `projects:${orgId}`;
+  const cachedProjects = await getCache(cacheKey);
+  if (cachedProjects) {
+    return cachedProjects;
+  }
+
   const projects = await prisma.project.findMany({
     where: { orgId, isArchived: false },
     include: {
@@ -77,10 +87,18 @@ const getProjects = async ({ orgId }: GetProjectsInput) => {
     },
   });
 
+  await setCache(cacheKey, projects, 1800);
+
   return projects;
 };
 
 const getProject = async ({ projectId, orgId }: GetProjectInput) => {
+  const cacheKey = `project:${projectId}`;
+  const cachedProject = await getCache(cacheKey);
+  if (cachedProject) {
+    return cachedProject;
+  }
+
   const project = await prisma.project.findFirst({
     where: { id: projectId, orgId },
     include: {
@@ -97,6 +115,8 @@ const getProject = async ({ projectId, orgId }: GetProjectInput) => {
   if (!project) {
     throw new ApiError(404, "Project not found");
   }
+
+  await setCache(cacheKey, project, 1800);
 
   return project;
 };
@@ -124,6 +144,10 @@ const updateProject = async ({
     data,
   });
 
+  // Invalidate caches
+  await deleteCache(`project:${projectId}`);
+  await deleteCache(`projects:${orgId}`);
+
   return updated;
 };
 
@@ -140,6 +164,10 @@ const deleteProject = async ({ projectId, orgId }: DeleteProjectInput) => {
     where: { id: projectId },
     data: { isArchived: true },
   });
+
+  // Invalidate caches
+  await deleteCache(`project:${projectId}`);
+  await deleteCache(`projects:${orgId}`);
 
   return true;
 };
