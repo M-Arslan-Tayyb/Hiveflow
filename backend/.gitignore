@@ -3,4 +3,5 @@ node_modules/
 logs/
 /src/generated/prisma
 dist/
+.claude/
 
