@@ -43,7 +43,7 @@ const updateOrg = asyncHandler(async (req: Request, res: Response) => {
 
 const deleteOrg = asyncHandler(async (req: Request, res: Response) => {
   const { orgId } = req.params as { orgId: string };
-  await orgService.deleteOrg({ orgId });
+  await orgService.deleteOrg({ orgId, userId: req.user!.id });
 
   res
     .status(200)

@@ -6,6 +6,7 @@ import {
   sendOrgRemovalEmail,
 } from "@/templates/emailService.js";
 import ApiError from "@/utils/ApiError.js";
+import { getCache, setCache, deleteCache } from "@/utils/cache.js";
 
 interface CreateOrgInput {
   name: string;
@@ -26,6 +27,7 @@ interface UpdateOrgInput {
 
 interface DeleteOrgInput {
   orgId: string;
+  userId: string;
 }
 
 interface GetAllOrgsInput {
@@ -76,6 +78,9 @@ const createOrg = async ({ name, slug, userId }: CreateOrgInput) => {
     return newOrg;
   });
 
+  // 3. Invalidate cache
+  await deleteCache(`orgs:${userId}`);
+
   return org;
 };
 
@@ -92,6 +97,12 @@ const getOrg = async ({ orgId, userId }: GetOrgInput) => {
 
   if (!orgMember) {
     throw new ApiError(403, "You are not a member of this organization");
+  }
+
+  const cacheKey = `org:${orgId}`;
+  const cachedOrg = await getCache(cacheKey);
+  if (cachedOrg) {
+    return cachedOrg;
   }
 
   const org = await prisma.organization.findUnique({
@@ -116,10 +127,12 @@ const getOrg = async ({ orgId, userId }: GetOrgInput) => {
     throw new ApiError(404, "Organization not found");
   }
 
+  await setCache(cacheKey, org, 3600);
+
   return org;
 };
 
-const updateOrg = async ({ orgId, name }: UpdateOrgInput) => {
+const updateOrg = async ({ orgId, userId, name }: UpdateOrgInput) => {
   // 1. Member check handled by loadOrgMember middleware
   // 2. Update
   const org = await prisma.organization.update({
@@ -127,19 +140,33 @@ const updateOrg = async ({ orgId, name }: UpdateOrgInput) => {
     data: { name },
   });
 
+  // 3. Invalidate caches
+  await deleteCache(`org:${orgId}`);
+  await deleteCache(`orgs:${userId}`);
+
   return org;
 };
 
-const deleteOrg = async ({ orgId }: DeleteOrgInput) => {
+const deleteOrg = async ({ orgId, userId }: DeleteOrgInput) => {
   await prisma.organization.update({
     where: { id: orgId },
     data: { isActive: false },
   });
 
+  // Invalidate caches
+  await deleteCache(`org:${orgId}`);
+  await deleteCache(`orgs:${userId}`);
+
   return true;
 };
 
 const getAllOrgs = async ({ userId }: GetAllOrgsInput) => {
+  const cacheKey = `orgs:${userId}`;
+  const cachedOrgs = await getCache(cacheKey);
+  if (cachedOrgs) {
+    return cachedOrgs;
+  }
+
   const orgs = await prisma.organization.findMany({
     where: {
       isActive: true,
@@ -158,6 +185,8 @@ const getAllOrgs = async ({ userId }: GetAllOrgsInput) => {
       },
     },
   });
+
+  await setCache(cacheKey, orgs, 1800);
 
   return orgs;
 };
@@ -233,6 +262,9 @@ const inviteMember = async ({
     inviteUrl,
   });
 
+  // 7. Invalidate cache
+  await deleteCache(`org-members:${orgId}`);
+
   return true;
 };
 
@@ -290,6 +322,9 @@ const removeMember = async ({
     orgName: targetMember.org.name,
   });
 
+  // 6. Invalidate cache
+  await deleteCache(`org-members:${orgId}`);
+
   return true;
 };
 
@@ -308,7 +343,14 @@ const getOrgMembers = async ({ orgId, userId }: GetOrgMembersInput) => {
     throw new ApiError(403, "You are not a member of this organization");
   }
 
-  // 2. Fetch all members
+  // 2. Check cache
+  const cacheKey = `org-members:${orgId}`;
+  const cachedMembers = await getCache(cacheKey);
+  if (cachedMembers) {
+    return cachedMembers;
+  }
+
+  // 3. Fetch all members
   const members = await prisma.orgMember.findMany({
     where: { orgId },
     include: {
@@ -322,6 +364,8 @@ const getOrgMembers = async ({ orgId, userId }: GetOrgMembersInput) => {
       },
     },
   });
+
+  await setCache(cacheKey, members, 1800);
 
   return members;
 };

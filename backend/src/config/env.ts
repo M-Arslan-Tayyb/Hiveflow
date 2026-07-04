@@ -31,6 +31,9 @@ interface AppConfig {
   jwt: JwtConfig;
   smtp: SmtpConfig;
   aws: AwsConfig;
+  redis: {
+    url: string | undefined;
+  };
   frontendUrl: string | undefined;
   ownerInviteSecret: string | undefined;
   appUrl: string | undefined;
@@ -58,6 +61,9 @@ const config: AppConfig = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
     bucketName: process.env.AWS_BUCKET_NAME,
+  },
+  redis: {
+    url: process.env.REDIS_URL,
   },
   frontendUrl: process.env.FRONTEND_URL,
   ownerInviteSecret: process.env.OWNER_INVITE_SECRET,

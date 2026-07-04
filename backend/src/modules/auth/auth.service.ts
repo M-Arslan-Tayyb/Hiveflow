@@ -38,6 +38,7 @@ interface VerifyEmailInput {
   token: string;
 }
 
+
 const registerUser = async ({
   fullName,
   email,
@@ -53,6 +54,8 @@ const registerUser = async ({
   if (existingUser) {
     throw new ApiError(409, "Email already exists");
   }
+  console.log(existingUser)
+
 
   // 2. Validate invite token — if provided
   if (inviteToken) {
