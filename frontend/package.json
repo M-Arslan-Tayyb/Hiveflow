@@ -1,0 +1,9 @@
+{
+  "name": "hiveflow-frontend",
+  "private": true,
+  "workspaces": [
+    "web",
+    "mobile",
+    "shared"
+  ]
+}
