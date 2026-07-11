@@ -1,5 +1,5 @@
-# Ignore .cloud folder
-.cloud/
+# Ignore .claude folder
+.claude/
 
 # Ignore all .md files
 *.md
@@ -11,3 +11,7 @@
 .env.development
 .env.production
 .env.staging
+
+node_modules/
+.next/
+.expo/
